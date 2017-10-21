@@ -20,7 +20,11 @@ export class Database<T extends {}, R extends string> {
     constructor(private url: string, private options?: pgpromise.IOptions<any>) { }
 
     /**
-     * async readResource
+     * readResource
+     * @param relation specify on which relation the operation should happen
+     * @param where specify the constraints a tuple needs to fullfill to be selected
+     * @param select specify the columns that should be returned - should be ALL and the
+     * SAME as the keys defined in the Y type
      */
     public async readResource<X extends T, Y extends T>(
         relation: R, where: Y, select: Array<keyof T> | keyof T | "*" = "*"): Promise<X | null> {
