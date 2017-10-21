@@ -43,23 +43,101 @@ describe("testing database.ts", function () {
     it("should create a tuple without any errors", function () { return __awaiter(_this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, database.createResource("users", { id: 0, name: "jakob lorz", verified: true })];
+                case 0: return [4 /*yield*/, database.createResource("users", { id: 0, name: "foo bar", verified: false })];
                 case 1:
+                    _a.sent();
+                    return [4 /*yield*/, database.createResource("users", { id: 1, name: "bar baz", verified: false })];
+                case 2:
                     _a.sent();
                     return [2 /*return*/];
             }
         });
     }); });
-    it("should find inserted tuple", function () { return __awaiter(_this, void 0, void 0, function () {
+    it("should find inserted tuple without any errors", function () { return __awaiter(_this, void 0, void 0, function () {
         var user;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, database.readResource("users", { id: 0 }, ["id", "name", "verified"])];
+                case 0: return [4 /*yield*/, database
+                        .readResource("users", { id: 0 })];
                 case 1:
                     user = _a.sent();
                     assert.equal(user.id, 0);
-                    assert.equal(user.name, "jakob lorz");
+                    assert.equal(user.name, "foo bar");
+                    assert.equal(user.verified, false);
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it("should find inserted tuples as list without any errors", function () { return __awaiter(_this, void 0, void 0, function () {
+        var users;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, database
+                        .readResourceList("users", { verified: false })];
+                case 1:
+                    users = _a.sent();
+                    assert.equal(users.length, 2);
+                    assert.equal(users[0].id, 0);
+                    assert.equal(users[0].name, "foo bar");
+                    assert.equal(users[0].verified, false);
+                    assert.equal(users[1].id, 1);
+                    assert.equal(users[1].name, "bar baz");
+                    assert.equal(users[1].verified, false);
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it("should order results", function () { return __awaiter(_this, void 0, void 0, function () {
+        var users;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, database
+                        .readResourceList("users", { verified: false }, "*", 0, 10, "", "id")];
+                case 1:
+                    users = _a.sent();
+                    assert.equal(users.length, 2);
+                    assert.equal(users[0].id, 1);
+                    assert.equal(users[1].id, 0);
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it("should update tuple without any errors", function () { return __awaiter(_this, void 0, void 0, function () {
+        var user;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, database.updateResource("users", { verified: true }, { id: 0 })];
+                case 1:
+                    _a.sent();
+                    return [4 /*yield*/, database.readResource("users", { id: 0 })];
+                case 2:
+                    user = _a.sent();
                     assert.equal(user.verified, true);
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it("should delete single tuple without any errors", function () { return __awaiter(_this, void 0, void 0, function () {
+        var user;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, database.deleteResource("users", { id: 1 })];
+                case 1:
+                    _a.sent();
+                    return [4 /*yield*/, database.readResource("users", { id: 1 })];
+                case 2:
+                    user = _a.sent();
+                    assert.equal(user, null);
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    after(function () { return __awaiter(_this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, database.deleteResource("users", { id: 0 })];
+                case 1:
+                    _a.sent();
                     return [2 /*return*/];
             }
         });

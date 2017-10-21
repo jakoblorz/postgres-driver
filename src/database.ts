@@ -84,14 +84,13 @@ export class Database<T extends {}, R extends string> {
                 .reduce<string>((acc, val) => acc += val + " DESC, ", "").slice(0, -2);
 
             // check if ORDER BY statement is wanted
-            const useOrderBy = (orderByAsc === "" ? undefined : "" || orderByDsc === "" ? undefined : "") !== undefined;
+            const useOrderBy = orderByAsc !== "" || orderByDsc !== "" || (orderByAsc !== "" && orderByDsc !== "");
 
             // get the database interface
             const connection = await this.connect();
 
-            // execute the query
-            return await connection.many(
-
+            // build the query
+            const query = 
                 // SELECT a,b,c FROM relation WHERE a = $1
                 "SELECT " + columns + " FROM " + relation + " WHERE " + clause +
 
@@ -103,8 +102,13 @@ export class Database<T extends {}, R extends string> {
                 (orderByDsc !== "" ? descending : "") +
 
                 // OFFSET 10 LIMIT 10;
-                (skip > 0 ? " OFFSET " + skip + " " : "") + (limit > 0 ? " LIMIT " + limit + " " : "")
-            , values) as X[] || [];
+                (skip > 0 ? " OFFSET " + skip + " " : "") + (limit > 0 ? " LIMIT " + limit + " " : "");
+
+            // tslint:disable-next-line:no-console
+            console.log(query);
+
+            // execute the query
+            return await connection.many(query, values) as X[] || [];
         }
 
     /**
@@ -156,7 +160,7 @@ export class Database<T extends {}, R extends string> {
             const updateIndexOffset = set.values.length;
 
             // reduce the where clause into accessible structure
-            const { clause, values } = await this.where<Y>(where);
+            const { clause, values } = await this.where<Y>(where, updateIndexOffset);
 
             // concat the values array into the update values array
             Array.prototype.push.apply(set.values, values);

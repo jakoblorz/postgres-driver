@@ -100,7 +100,7 @@ var Database = /** @class */ (function () {
         if (orderByAsc === void 0) { orderByAsc = ""; }
         if (orderByDsc === void 0) { orderByDsc = ""; }
         return __awaiter(this, void 0, void 0, function () {
-            var _a, clause, values, columns, ascending, descending, useOrderBy, connection;
+            var _a, clause, values, columns, ascending, descending, useOrderBy, connection, query;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0: return [4 /*yield*/, this.where(where)];
@@ -111,21 +111,24 @@ var Database = /** @class */ (function () {
                             .reduce(function (acc, val) { return acc += val + " ASC, "; }, "").slice(0, -2);
                         descending = typeof orderByDsc === "string" ? orderByDsc + " DESC " : orderByAsc
                             .reduce(function (acc, val) { return acc += val + " DESC, "; }, "").slice(0, -2);
-                        useOrderBy = (orderByAsc === "" ? undefined : "" || orderByDsc === "" ? undefined : "") !== undefined;
+                        useOrderBy = orderByAsc !== "" || orderByDsc !== "" || (orderByAsc !== "" && orderByDsc !== "");
                         return [4 /*yield*/, this.connect()];
                     case 2:
                         connection = _b.sent();
-                        return [4 /*yield*/, connection.many(
-                            // SELECT a,b,c FROM relation WHERE a = $1
-                            "SELECT " + columns + " FROM " + relation + " WHERE " + clause +
-                                // ORDER BY a ASC, b DSC
-                                (useOrderBy ? " ORDER BY " : "") +
-                                // insert ASC statements, check if a comma is required at the end because there
-                                // will be DSC clauses
-                                (orderByAsc !== "" ? (orderByDsc !== "" ? ascending + ", " : ascending) : "") +
-                                (orderByDsc !== "" ? descending : "") +
-                                // OFFSET 10 LIMIT 10;
-                                (skip > 0 ? " OFFSET " + skip + " " : "") + (limit > 0 ? " LIMIT " + limit + " " : ""), values)];
+                        query = 
+                        // SELECT a,b,c FROM relation WHERE a = $1
+                        "SELECT " + columns + " FROM " + relation + " WHERE " + clause +
+                            // ORDER BY a ASC, b DSC
+                            (useOrderBy ? " ORDER BY " : "") +
+                            // insert ASC statements, check if a comma is required at the end because there
+                            // will be DSC clauses
+                            (orderByAsc !== "" ? (orderByDsc !== "" ? ascending + ", " : ascending) : "") +
+                            (orderByDsc !== "" ? descending : "") +
+                            // OFFSET 10 LIMIT 10;
+                            (skip > 0 ? " OFFSET " + skip + " " : "") + (limit > 0 ? " LIMIT " + limit + " " : "");
+                        // tslint:disable-next-line:no-console
+                        console.log(query);
+                        return [4 /*yield*/, connection.many(query, values)];
                     case 3: 
                     // execute the query
                     return [2 /*return*/, (_b.sent()) || []];
@@ -182,7 +185,7 @@ var Database = /** @class */ (function () {
                     case 1:
                         set = _b.sent();
                         updateIndexOffset = set.values.length;
-                        return [4 /*yield*/, this.where(where)];
+                        return [4 /*yield*/, this.where(where, updateIndexOffset)];
                     case 2:
                         _a = _b.sent(), clause = _a.clause, values = _a.values;
                         // concat the values array into the update values array
