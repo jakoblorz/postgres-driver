@@ -126,8 +126,6 @@ var Database = /** @class */ (function () {
                             (orderByDsc !== "" ? descending : "") +
                             // OFFSET 10 LIMIT 10;
                             (skip > 0 ? " OFFSET " + skip + " " : "") + (limit > 0 ? " LIMIT " + limit + " " : "");
-                        // tslint:disable-next-line:no-console
-                        console.log(query);
                         return [4 /*yield*/, connection.many(query, values)];
                     case 3: 
                     // execute the query
@@ -290,4 +288,3 @@ var Database = /** @class */ (function () {
     return Database;
 }());
 exports.Database = Database;
-var db = new Database("");
