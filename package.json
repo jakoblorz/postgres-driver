@@ -4,7 +4,8 @@
   "description": "postgres-class using proper types for easy crud-commands. Add own methods",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "test": "find ./src -name '*.test.js' | xargs mocha -R spec"
   },
   "repository": {
     "type": "git",
