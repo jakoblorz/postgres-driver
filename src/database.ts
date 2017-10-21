@@ -112,32 +112,33 @@ export class Database<T extends {}, R extends string> {
      * @param relation specify on which relation the operation should happen
      * @param tuple specify the data to insert
      */
-    public async createResource<X extends T>(relation: R, tuple: X) {
+    public async createResource<X extends T>(
+        relation: R, tuple: X) {
 
-        // reduce the tuple clause into accessible structure
-        // tslint:disable-next-line:prefer-const
-        let { clause, pointers, values } = Object.keys(tuple)
-            .reduce<ITupleUsingPointers>((acc, key, index) => {
-                    acc.values.push((tuple as any)[key]);
-                    acc.clause += key + ", ";
-                    acc.pointers += "$" + (index + 1) + ", ";
-                    return acc;
-            },  { clause: "", pointers: "", values: []});
+            // reduce the tuple clause into accessible structure
+            // tslint:disable-next-line:prefer-const
+            let { clause, pointers, values } = Object.keys(tuple)
+                .reduce<ITupleUsingPointers>((acc, key, index) => {
+                        acc.values.push((tuple as any)[key]);
+                        acc.clause += key + ", ";
+                        acc.pointers += "$" + (index + 1) + ", ";
+                        return acc;
+                },  { clause: "", pointers: "", values: []});
 
-        // remove the last commas
-        clause = clause.slice(0, -2);
-        pointers = pointers.slice(0, -2);
+            // remove the last commas
+            clause = clause.slice(0, -2);
+            pointers = pointers.slice(0, -2);
 
-        // get the database interface
-        const connection = await this.connect();
+            // get the database interface
+            const connection = await this.connect();
 
-        // execute the query
-        return await connection.none(
+            // execute the query
+            return await connection.none(
 
-            // INSERT INTO relation (a, b) VALUES ($1, $2);
-            "INSERT INTO " + relation + " (" + clause + ") VALUES (" + pointers + ")"
-        , values) as null || null;
-    }
+                // INSERT INTO relation (a, b) VALUES ($1, $2);
+                "INSERT INTO " + relation + " (" + clause + ") VALUES (" + pointers + ")"
+            , values) as null || null;
+        }
 
     /**
      * updateResource
@@ -169,6 +170,28 @@ export class Database<T extends {}, R extends string> {
                 // UPDATE relation SET a = $1 WHERE b = $2;
                 "UPDATE " + relation + " SET " + set.clause + " WHERE " + clause
             , set.values) as null || null;
+        }
+
+    /**
+     * deleteResource
+     * @param relation specify on which relation the operation should happen
+     * @param where specify the constraint a tuple needs to fullfill to be deleted
+     */
+    public async deleteResource<X extends T>(
+        relation: R, where: X) {
+            
+            // reduce the where clause into accessible structure
+            const { clause, values } = await this.where<X>(where);
+
+            // get the database interface
+            const connection = await this.connect();
+
+            // execute the query
+            return await connection.none(
+
+                // DELETE FROM relation WHERE a = $1;
+                "DELETE FROM " + relation + " WHERE " + clause
+            , values) as null || null;
         }
 
     /**
