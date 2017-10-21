@@ -27,7 +27,7 @@ export class Database<T extends {}, R extends string> {
      * SAME as the keys defined in the X type
      */
     public async readResource<X extends T, Y extends T>(
-        relation: R, where: Y, select: Array<keyof X> | keyof X | "*" = "*"): Promise<X | null> {
+        relation: R, where: Y, select: Array<keyof X> | keyof X | "*" = "*") {
             
             // reduce the where clause into accessible structure
             const { clause, values } = await this.where<Y>(where);
@@ -40,7 +40,10 @@ export class Database<T extends {}, R extends string> {
 
             // execute the query
             return await connection.oneOrNone(
-                "SELECT " + columns + " FROM " + relation + " WHERE " + clause + " LIMIT 1", values) || null;
+
+                // SELECT a, b FROM relation WHERE a = $1;
+                "SELECT " + columns + " FROM " + relation + " WHERE " + clause + " LIMIT 1"
+            , values) as X || null;
         }
 
     /**
@@ -84,6 +87,7 @@ export class Database<T extends {}, R extends string> {
 
             // execute the query
             return await connection.many(
+
                 // SELECT a,b,c FROM relation WHERE a = $1
                 "SELECT " + columns + " FROM " + relation + " WHERE " + clause +
 
@@ -94,9 +98,45 @@ export class Database<T extends {}, R extends string> {
                 (orderByAsc !== "" ? (orderByDsc !== "" ? ascending + ", " : ascending) : "") +
                 (orderByDsc !== "" ? descending : "") +
 
-                // OFFSET 10 LIMIT 10
-                (skip > 0 ? " OFFSET " + skip + " " : "") + (limit > 0 ? " LIMIT " + limit + " " : ""), values);
+                // OFFSET 10 LIMIT 10;
+                (skip > 0 ? " OFFSET " + skip + " " : "") + (limit > 0 ? " LIMIT " + limit + " " : "")
+            , values) as X[] || [];
         }
+
+    /**
+     * createResource
+     * @param relation specify on which relation the operation should happen
+     * @param tuple specify the data to insert
+     */
+    public async createResource<X extends T>(relation: R, tuple: X) {
+
+        // reduce the tuple object into a queryable data structure
+        // tslint:disable-next-line:prefer-const
+        let { columns, pointers, values } = Object.keys(tuple)
+            .reduce<{ columns: string, pointers: string, values: any[] }>(
+                (acc, key, index) => {
+                    acc.values.push((tuple as any)[key]);
+                    return {
+                        columns: acc.columns + key + ", ",
+                        pointers: acc.pointers + "$" + (index + 1) + ", ",
+                        values: acc.values,
+                    };
+            },  { columns: "", pointers: "", values: []});
+
+        // remove the last commas
+        columns = columns.slice(0, -2);
+        pointers = pointers.slice(0, -2);
+
+        // get the database interface
+        const connection = await this.connect();
+
+        // execute the query
+        return await connection.none(
+
+            // INSERT INTO relation (a, b) VALUES ("a-content", "b-content");
+            "INSERT INTO " + relation + " (" + columns + ") VALUES (" + pointers + ")"
+        , values) as null || null;
+    }
 
     /**
      * obtain a database interface to execute queries
