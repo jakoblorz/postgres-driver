@@ -104,9 +104,6 @@ export class Database<T extends {}, R extends string> {
                 // OFFSET 10 LIMIT 10;
                 (skip > 0 ? " OFFSET " + skip + " " : "") + (limit > 0 ? " LIMIT " + limit + " " : "");
 
-            // tslint:disable-next-line:no-console
-            console.log(query);
-
             // execute the query
             return await connection.many(query, values) as X[] || [];
         }
@@ -253,5 +250,3 @@ export class Database<T extends {}, R extends string> {
         return set;
     }
 }
-
-const db = new Database<{ id?: string }, "accounts" | "users">("");
