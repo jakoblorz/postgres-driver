@@ -20,6 +20,26 @@ export class Database<T extends {}, R extends string> {
     constructor(private url: string, private options?: pgpromise.IOptions<any>) { }
 
     /**
+     * async readResource
+     */
+    public async readResource<X extends T, Y extends T>(
+        relation: R, where: Y, select: Array<keyof T> | keyof T | "*" = "*"): Promise<X | null> {
+            
+            // reduce the where clause into accessible structure
+            const { clause, values } = await this.where<Y>(where);
+
+            // build string of selected columns
+            const columns = typeof select === "string" ? select : select.toString();
+
+            // get the database interface
+            const connection = await this.connect();
+
+            // execute the query
+            return await connection.oneOrNone(
+                "SELECT " + columns + " FROM " + relation + " WHERE " + clause + " LIMIT 1", values) || null;
+        }
+
+    /**
      * obtain a database interface to execute queries
      */
     private async connect() {
