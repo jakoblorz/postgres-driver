@@ -201,7 +201,7 @@ export class Database<T extends {}, R extends string> {
     /**
      * obtain a database interface to execute queries
      */
-    private async connect() {
+    public async connect() {
 
         // postgres object could not have been initialized yet
         if (postgres === undefined) {
