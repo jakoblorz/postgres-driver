@@ -80,7 +80,7 @@ export class Database<T extends {}, R extends string> {
                 .reduce<string>((acc, val) => acc += val + " ASC, ", "").slice(0, -2);
 
             // build ORDER BY data for descending orders
-            const descending = typeof orderByDsc === "string" ? orderByDsc + " DESC " : (orderByAsc as string[])
+            const descending = typeof orderByDsc === "string" ? orderByDsc + " DESC " : (orderByDsc as string[])
                 .reduce<string>((acc, val) => acc += val + " DESC, ", "").slice(0, -2);
 
             // check if ORDER BY statement is wanted

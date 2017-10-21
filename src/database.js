@@ -109,7 +109,7 @@ var Database = /** @class */ (function () {
                         columns = typeof select === "string" ? select : select.toString();
                         ascending = typeof orderByAsc === "string" ? orderByAsc + " ASC " : orderByAsc
                             .reduce(function (acc, val) { return acc += val + " ASC, "; }, "").slice(0, -2);
-                        descending = typeof orderByDsc === "string" ? orderByDsc + " DESC " : orderByAsc
+                        descending = typeof orderByDsc === "string" ? orderByDsc + " DESC " : orderByDsc
                             .reduce(function (acc, val) { return acc += val + " DESC, "; }, "").slice(0, -2);
                         useOrderBy = orderByAsc !== "" || orderByDsc !== "" || (orderByAsc !== "" && orderByDsc !== "");
                         return [4 /*yield*/, this.connect()];

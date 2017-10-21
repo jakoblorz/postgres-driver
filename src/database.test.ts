@@ -37,11 +37,20 @@ describe("testing database.ts", () => {
         assert.equal(users[1].verified, false);
     });
 
-    it("should order results", async () => {
+    it("should ORDER BY DESC when specifying as string literal", async () => {
         const users = await database
             .readResourceList<{ id: number }, { verified: boolean }>(
                 "users", { verified: false }, "*", 0, 10, "", "id");
 
+        assert.equal(users.length, 2);
+        assert.equal(users[0].id, 1);
+        assert.equal(users[1].id, 0);
+    });
+
+    it("should ORDER BY DESC when specifying as string array", async () => {
+        const users = await database
+            .readResourceList<{ id: number }, { verified: boolean }>(
+                "users", { verified: false }, "*", 0, 10, "", ["id"]);
         assert.equal(users.length, 2);
         assert.equal(users[0].id, 1);
         assert.equal(users[1].id, 0);
