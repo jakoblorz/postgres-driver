@@ -87,6 +87,36 @@ describe("testing database.ts", function () {
             }
         });
     }); });
+    it("should ORDER BY ASC when specifying as string literal", function () { return __awaiter(_this, void 0, void 0, function () {
+        var users;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, database
+                        .readResourceList("users", { verified: false }, "*", 0, 10, "id")];
+                case 1:
+                    users = _a.sent();
+                    assert.equal(users.length, 2);
+                    assert.equal(users[0].id, 0);
+                    assert.equal(users[1].id, 1);
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it("should ORDER BY ASC when specifying as string array", function () { return __awaiter(_this, void 0, void 0, function () {
+        var users;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, database
+                        .readResourceList("users", { verified: false }, "*", 0, 10, ["id"])];
+                case 1:
+                    users = _a.sent();
+                    assert.equal(users.length, 2);
+                    assert.equal(users[0].id, 0);
+                    assert.equal(users[1].id, 1);
+                    return [2 /*return*/];
+            }
+        });
+    }); });
     it("should ORDER BY DESC when specifying as string literal", function () { return __awaiter(_this, void 0, void 0, function () {
         var users;
         return __generator(this, function (_a) {
