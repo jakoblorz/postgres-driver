@@ -57,4 +57,11 @@ const accounts = new AccountSet();
 accounts.readResource<IAccount, { id: number }>("accounts", { id: 0 })
     .then((account: IAccount | null) => console.log(account === null ? 
         "" : JSON.stringify(account))); // { id: 0, name: "name", age: 18 }
+
+// invoke a custom method
+accounts.createNewAccount("user")
+    .then(() => accounts.readResource<IAccount, { name: string }>("accounts", { name: "user" }))
+    .then((res) => console.log(account === null ?
+        "" : JSON.stringify(account))) // { id: 0, name: "user", age: 18 }
+    .catch(console.error);
 ```
