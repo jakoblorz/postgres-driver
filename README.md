@@ -57,4 +57,21 @@ const accounts = new AccountSet();
 accounts.readResource<IAccount, { id: number }>("accounts", { id: 0 })
     .then((account: IAccount | null) => console.log(account === null ? 
         "" : JSON.stringify(account))); // { id: 0, name: "name", age: 18 }
+
+// invoke a custom method
+accounts.createNewAccount("user")
+    .then(() => accounts.readResource<IAccount, { name: string }>("accounts", { name: "user" }))
+    .then((res) => console.log(account === null ?
+        "" : JSON.stringify(account))) // { id: 0, name: "user", age: 18 }
+    .catch(console.error);
 ```
+
+## Documentation
+| method | description |
+| --- | --- |
+| `async` **`readResource`**`<X, Y>(relation: string, where: Y, select?: (keyof X)[] | keyof X | "*")` | read a single tuple from the relation - returning null if no row was found |
+| `async` **`readResourceList`**`<X, Y>(relation: string, where: Y, select?: (keyof X)[] | keyof X | "*", skip?: number, limit?: number, orderByAsc?: (keyof X)[] | keyof X | "", orderByDsc?: (keyof X)[] | keyof X | "")` | read multiple tuples from the relation |
+| `async` **`createResource`**`<X>(relation: string, tuple: X)`| insert a new tuple in the relation |
+| `async` **`updateResource`**`<X, Y>(relation: string, update: X, where: Y)` | update one (multiple) tuple(s) in the relation |
+| `async` **`deleteResource`**`<X>(relation: string, where: X)`| remove one (multiple) tuple(s) |
+| `async` **`connect()`** | obtain the pg-promise database interface with an established connection to execute custom queries |
