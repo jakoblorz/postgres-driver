@@ -7,8 +7,7 @@ node_js:
   - 6.11.0
 
 before_install:
-  - psql -c 'create user default createdb createuser password "default";' -U postgres
-  - psql -c 'create database default owner default;' -U postgres
+  - psql -c "create user default createdb createuser password 'default';" -U postgres
   - psql -c 'create database postgres_driver owner default;' -U postgres
   - psql -c 'create table users (id int NOT NULL PRIMARY KEY, name text NOT NULL, verified boolean NOT NULL);' -U default -d postgres_driver
   - npm install
