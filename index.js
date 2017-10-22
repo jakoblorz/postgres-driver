@@ -26,3 +26,5 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var database_1 = require("./src/database");
 exports.Database = database_1.Database;
+exports.LIMIT_DEFAULT = database_1.LIMIT_DEFAULT;
+exports.SKIP_DEFAULT = database_1.SKIP_DEFAULT;

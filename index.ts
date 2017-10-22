@@ -23,4 +23,4 @@
  *
  */
 
-export { Database } from "./src/database";
+export { Database, LIMIT_DEFAULT, SKIP_DEFAULT } from "./src/database";
