@@ -1,5 +1,8 @@
 import * as pgpromise from "pg-promise";
 
+export const SKIP_DEFAULT = 0;
+export const LIMIT_DEFAULT = 10;
+
 let postgres: pgpromise.IDatabase<any> | undefined;
 
 interface IClauseValueTuple {
@@ -57,7 +60,7 @@ export class Database<TDefintion extends {}, TModel extends TDefintion> {
      * @param orderByDsc specify columns which should be ordered in descending order
      */
     public async readResourceList<X extends TDefintion>(
-        where: X, skip: number = 0, limit: number = 10,
+        where: X, skip: number = SKIP_DEFAULT, limit: number = LIMIT_DEFAULT,
         orderByAsc: Array<keyof TModel> | keyof TModel | "" = "",
         orderByDsc: Array<keyof TModel> | keyof TModel | "" = "") {
             
