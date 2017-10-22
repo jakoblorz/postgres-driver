@@ -36,6 +36,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var pgpromise = require("pg-promise");
+exports.SKIP_DEFAULT = 0;
+exports.LIMIT_DEFAULT = 10;
 var postgres;
 /**
  * Database is a class to hold all the necessary methods
@@ -43,36 +45,35 @@ var postgres;
 var Database = /** @class */ (function () {
     /**
      * create a new database instance
+     * @param name table name
      * @param url connection string to the database
      * @param options init options for the pg-promise engine
      */
-    function Database(url, options) {
+    function Database(name, url, options) {
+        this.name = name;
         this.url = url;
         this.options = options;
     }
     /**
-     * readResource
-     * @param relation specify on which relation the operation should happen
+     * read a single tuple from the database
      * @param where specify the constraints a tuple needs to fullfill to be selected
      * @param select specify the columns that should be returned - should be ALL and the
      * SAME as the keys defined in the X type
      */
-    Database.prototype.readResource = function (relation, where, select) {
-        if (select === void 0) { select = "*"; }
+    Database.prototype.readResource = function (where) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, clause, values, columns, connection;
+            var _a, clause, values, connection;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0: return [4 /*yield*/, this.where(where)];
                     case 1:
                         _a = _b.sent(), clause = _a.clause, values = _a.values;
-                        columns = typeof select === "string" ? select : select.toString();
                         return [4 /*yield*/, this.connect()];
                     case 2:
                         connection = _b.sent();
                         return [4 /*yield*/, connection.oneOrNone(
                             // SELECT a, b FROM relation WHERE a = $1;
-                            "SELECT " + columns + " FROM " + relation + " WHERE " + clause + " LIMIT 1", values)];
+                            "SELECT * FROM " + this.name + " WHERE " + clause + " LIMIT 1", values)];
                     case 3: 
                     // execute the query
                     return [2 /*return*/, (_b.sent()) || null];
@@ -81,11 +82,8 @@ var Database = /** @class */ (function () {
         });
     };
     /**
-     * readResourceList
-     * @param relation specify on which relation the operation should happen
+     * read multiple tuples from the database
      * @param where specify the constraints a tuple needs to fullfill to be selected
-     * @param select specify the columns that should be retured - should be ALL and the
-     * SAME as the keys defined in the X type
      * @param skip specify the tuples that should be skipped before selecting - NOTE: make
      * use of the orderByAsc/orderByDsc arguments to give sense to the expression 'skip the
      * first x tuples'
@@ -93,20 +91,18 @@ var Database = /** @class */ (function () {
      * @param orderByAsc specify columns which should be ordered in ascending order
      * @param orderByDsc specify columns which should be ordered in descending order
      */
-    Database.prototype.readResourceList = function (relation, where, select, skip, limit, orderByAsc, orderByDsc) {
-        if (select === void 0) { select = "*"; }
-        if (skip === void 0) { skip = 0; }
-        if (limit === void 0) { limit = 10; }
+    Database.prototype.readResourceList = function (where, skip, limit, orderByAsc, orderByDsc) {
+        if (skip === void 0) { skip = exports.SKIP_DEFAULT; }
+        if (limit === void 0) { limit = exports.LIMIT_DEFAULT; }
         if (orderByAsc === void 0) { orderByAsc = ""; }
         if (orderByDsc === void 0) { orderByDsc = ""; }
         return __awaiter(this, void 0, void 0, function () {
-            var _a, clause, values, columns, ascending, descending, useOrderBy, connection, query;
+            var _a, clause, values, ascending, descending, useOrderBy, connection, query;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0: return [4 /*yield*/, this.where(where)];
                     case 1:
                         _a = _b.sent(), clause = _a.clause, values = _a.values;
-                        columns = typeof select === "string" ? select : select.toString();
                         ascending = typeof orderByAsc === "string" ? orderByAsc + " ASC " : orderByAsc
                             .reduce(function (acc, val) { return acc += val + " ASC, "; }, "").slice(0, -2);
                         descending = typeof orderByDsc === "string" ? orderByDsc + " DESC " : orderByDsc
@@ -117,7 +113,7 @@ var Database = /** @class */ (function () {
                         connection = _b.sent();
                         query = 
                         // SELECT a,b,c FROM relation WHERE a = $1
-                        "SELECT " + columns + " FROM " + relation + " WHERE " + clause +
+                        "SELECT * FROM " + this.name + " WHERE " + clause +
                             // ORDER BY a ASC, b DSC
                             (useOrderBy ? " ORDER BY " : "") +
                             // insert ASC statements, check if a comma is required at the end because there
@@ -135,11 +131,10 @@ var Database = /** @class */ (function () {
         });
     };
     /**
-     * createResource
-     * @param relation specify on which relation the operation should happen
+     * insert a new tuple into the database
      * @param tuple specify the data to insert
      */
-    Database.prototype.createResource = function (relation, tuple) {
+    Database.prototype.createResource = function (tuple) {
         return __awaiter(this, void 0, void 0, function () {
             var _a, clause, pointers, values, connection;
             return __generator(this, function (_b) {
@@ -160,7 +155,7 @@ var Database = /** @class */ (function () {
                         connection = _b.sent();
                         return [4 /*yield*/, connection.none(
                             // INSERT INTO relation (a, b) VALUES ($1, $2);
-                            "INSERT INTO " + relation + " (" + clause + ") VALUES (" + pointers + ")", values)];
+                            "INSERT INTO " + this.name + " (" + clause + ") VALUES (" + pointers + ")", values)];
                     case 2: 
                     // execute the query
                     return [2 /*return*/, (_b.sent()) || null];
@@ -169,12 +164,11 @@ var Database = /** @class */ (function () {
         });
     };
     /**
-     * updateResource
-     * @param relation specify on which relation the operation should happen
+     * update one/multiple tuple/tuples in the database
      * @param update specify the data to manipulate
      * @param where specify the constraints a tuple needs to fullfill to be updated
      */
-    Database.prototype.updateResource = function (relation, update, where) {
+    Database.prototype.updateResource = function (update, where) {
         return __awaiter(this, void 0, void 0, function () {
             var set, updateIndexOffset, _a, clause, values, connection;
             return __generator(this, function (_b) {
@@ -193,7 +187,7 @@ var Database = /** @class */ (function () {
                         connection = _b.sent();
                         return [4 /*yield*/, connection.none(
                             // UPDATE relation SET a = $1 WHERE b = $2;
-                            "UPDATE " + relation + " SET " + set.clause + " WHERE " + clause, set.values)];
+                            "UPDATE " + this.name + " SET " + set.clause + " WHERE " + clause, set.values)];
                     case 4: 
                     // execute the query
                     return [2 /*return*/, (_b.sent()) || null];
@@ -202,11 +196,10 @@ var Database = /** @class */ (function () {
         });
     };
     /**
-     * deleteResource
-     * @param relation specify on which relation the operation should happen
+     * remove one/multiple tuple/tuples from the database
      * @param where specify the constraint a tuple needs to fullfill to be deleted
      */
-    Database.prototype.deleteResource = function (relation, where) {
+    Database.prototype.deleteResource = function (where) {
         return __awaiter(this, void 0, void 0, function () {
             var _a, clause, values, connection;
             return __generator(this, function (_b) {
@@ -219,7 +212,7 @@ var Database = /** @class */ (function () {
                         connection = _b.sent();
                         return [4 /*yield*/, connection.none(
                             // DELETE FROM relation WHERE a = $1;
-                            "DELETE FROM " + relation + " WHERE " + clause, values)];
+                            "DELETE FROM " + this.name + " WHERE " + clause, values)];
                     case 3: 
                     // execute the query
                     return [2 /*return*/, (_b.sent()) || null];

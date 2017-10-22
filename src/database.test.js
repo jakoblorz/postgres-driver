@@ -38,15 +38,17 @@ var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var assert = require("assert");
 var database_1 = require("./database");
-var database = new database_1.Database("postgres://jakob:Gailbach@localhost:5432/postgres_driver");
+var postgresUrl = process.env.POSTGRES_URL ||
+    "postgres://default:default@localhost:5432/postgres_driver";
+var database = new database_1.Database("users", postgresUrl);
 describe("testing database.ts", function () {
     it("should create a tuple without any errors", function () { return __awaiter(_this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, database.createResource("users", { id: 0, name: "foo bar", verified: false })];
+                case 0: return [4 /*yield*/, database.createResource({ id: 0, name: "foo bar", verified: false })];
                 case 1:
                     _a.sent();
-                    return [4 /*yield*/, database.createResource("users", { id: 1, name: "bar baz", verified: false })];
+                    return [4 /*yield*/, database.createResource({ id: 1, name: "bar baz", verified: false })];
                 case 2:
                     _a.sent();
                     return [2 /*return*/];
@@ -57,10 +59,12 @@ describe("testing database.ts", function () {
         var user;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, database
-                        .readResource("users", { id: 0 })];
+                case 0: return [4 /*yield*/, database.readResource({ id: 0 })];
                 case 1:
                     user = _a.sent();
+                    if (user === null) {
+                        throw Error("database response is null");
+                    }
                     assert.equal(user.id, 0);
                     assert.equal(user.name, "foo bar");
                     assert.equal(user.verified, false);
@@ -72,8 +76,7 @@ describe("testing database.ts", function () {
         var users;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, database
-                        .readResourceList("users", { verified: false })];
+                case 0: return [4 /*yield*/, database.readResourceList({ verified: false })];
                 case 1:
                     users = _a.sent();
                     assert.equal(users.length, 2);
@@ -91,8 +94,7 @@ describe("testing database.ts", function () {
         var users;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, database
-                        .readResourceList("users", { verified: false }, "*", 0, 10, "id")];
+                case 0: return [4 /*yield*/, database.readResourceList({ verified: false }, 0, 10, "id")];
                 case 1:
                     users = _a.sent();
                     assert.equal(users.length, 2);
@@ -106,8 +108,7 @@ describe("testing database.ts", function () {
         var users;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, database
-                        .readResourceList("users", { verified: false }, "*", 0, 10, ["id"])];
+                case 0: return [4 /*yield*/, database.readResourceList({ verified: false }, 0, 10, ["id"])];
                 case 1:
                     users = _a.sent();
                     assert.equal(users.length, 2);
@@ -121,8 +122,7 @@ describe("testing database.ts", function () {
         var users;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, database
-                        .readResourceList("users", { verified: false }, "*", 0, 10, "", "id")];
+                case 0: return [4 /*yield*/, database.readResourceList({ verified: false }, 0, 10, "", "id")];
                 case 1:
                     users = _a.sent();
                     assert.equal(users.length, 2);
@@ -136,8 +136,7 @@ describe("testing database.ts", function () {
         var users;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, database
-                        .readResourceList("users", { verified: false }, "*", 0, 10, "", ["id"])];
+                case 0: return [4 /*yield*/, database.readResourceList({ verified: false }, 0, 10, "", ["id"])];
                 case 1:
                     users = _a.sent();
                     assert.equal(users.length, 2);
@@ -151,12 +150,15 @@ describe("testing database.ts", function () {
         var user;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, database.updateResource("users", { verified: true }, { id: 0 })];
+                case 0: return [4 /*yield*/, database.updateResource({ verified: true }, { id: 0 })];
                 case 1:
                     _a.sent();
-                    return [4 /*yield*/, database.readResource("users", { id: 0 })];
+                    return [4 /*yield*/, database.readResource({ id: 0 })];
                 case 2:
                     user = _a.sent();
+                    if (user === null) {
+                        throw Error("database response is null");
+                    }
                     assert.equal(user.verified, true);
                     return [2 /*return*/];
             }
@@ -166,10 +168,10 @@ describe("testing database.ts", function () {
         var user;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, database.deleteResource("users", { id: 1 })];
+                case 0: return [4 /*yield*/, database.deleteResource({ id: 1 })];
                 case 1:
                     _a.sent();
-                    return [4 /*yield*/, database.readResource("users", { id: 1 })];
+                    return [4 /*yield*/, database.readResource({ id: 1 })];
                 case 2:
                     user = _a.sent();
                     assert.equal(user, null);
@@ -180,7 +182,7 @@ describe("testing database.ts", function () {
     after(function () { return __awaiter(_this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, database.deleteResource("users", { id: 0 })];
+                case 0: return [4 /*yield*/, database.deleteResource({ id: 0 })];
                 case 1:
                     _a.sent();
                     return [2 /*return*/];

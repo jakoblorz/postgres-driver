@@ -1,6 +1,8 @@
 # postgres-driver
 pg-promise sugar using proper types for easy (async) crud-commands. Add custom methods.
 
+[![Build Status](https://travis-ci.org/jakoblorz/postgres-driver.svg?branch=remove-custom-select)](https://travis-ci.org/jakoblorz/postgres-driver)
+
 ## Installation
 this module is not listed on npm though it can be installed using it:
 ```shell
@@ -31,9 +33,9 @@ interface IAccount extends IAccountTableDefinition {
 }
 
 // create a set class
-class AccountSet extends Database<IAccountTableDefinition, "accounts"> {
+class AccountSet extends Database<IAccountTableDefinition, IAccount> {
     constructor(){
-        super("postgres://user:password@host:port/database");
+        super("accounts", "postgres://user:password@host:port/database");
     }
 
     // define a custom method though this example
@@ -54,14 +56,14 @@ class AccountSet extends Database<IAccountTableDefinition, "accounts"> {
 const accounts = new AccountSet();
 
 // invoke the read resource method
-accounts.readResource<IAccount, { id: number }>("accounts", { id: 0 })
-    .then((account: IAccount | null) => console.log(account === null ? 
+accounts.readResource({ id: 0 })
+    .then((account) => console.log(account === null ? 
         "" : JSON.stringify(account))); // { id: 0, name: "name", age: 18 }
 
 // invoke a custom method
 accounts.createNewAccount("user")
-    .then(() => accounts.readResource<IAccount, { name: string }>("accounts", { name: "user" }))
-    .then((res) => console.log(account === null ?
+    .then(() => accounts.readResource({ name: "user" }))
+    .then((account) => console.log(account === null ?
         "" : JSON.stringify(account))) // { id: 0, name: "user", age: 18 }
     .catch(console.error);
 ```
@@ -77,28 +79,21 @@ accounts.createNewAccount("user")
 | `async `**`connect()`** | obtain the pg-promise database interface with an established connection to execute custom queries |
 
 ### **readResource<X, Y>()**
-- **`relation`**: *`string`* specify the table name
 - **`where`**: *`Y`* select the tuple to read
-- **`select?`**: *`(keyof X)[] | keyof X | "*"`* specify the columns to return
 
 ### **readResourceList<X, Y>()**
-- **`relation`**: *`string`* specify the table name
 - **`where`**: *`Y`* select the tuples to read
-- **`select?`**: *`(keyof X)[] | keyof X | "*"`* specify the columns to return
 - **`skip?`**: *`number`* specify a total of tuples that should be skipped before selection - NOTE: make use of the orderByAsc/orderByDsc arguments to give sense to the expression 'skip the first x tuples'
 - **`limit?`**: *`number`* specify a maximum count of tuples in the selection
 - **`orderByAsc?`**: *`(keyof X)[] | keyof X | ""`* specify columns that should be ordered in ascending order
 - **`orderByDsc?`**: *`(keyof X)[] | keyof X | ""`* specify columns that should be ordered in descending order
 
 ### **createResource<X>()**
-- **`relation`**: *`string`* specify the table name
 - **`tuple`**: *`X`* data to insert into the table
 
 ### **updateResource<X, Y>()**
-- **`relation`**: *`string`* specify the table name
 - **`update`**: *`X`* specify the columns to manipulate
 - **`where`**: *`Y`* select the tuples to update
 
 ### **deleteResource<X>()**
-- **`relation`**: *`string`* specify the table name
 - **`where`**: *`Y`* select the tuples to delete
