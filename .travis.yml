@@ -1,0 +1,18 @@
+language: node_js
+
+services:
+  - postgresql
+
+node_js:
+  - 6.11.0
+
+before_install:
+  - psql -c 'create user default createdb createuser password "default";' -U postgres
+  - psql -c 'create database default owner default;' -U postgres
+  - psql -c 'create database users owner default;' -U postgres
+  - npm install
+  - npm install typescript
+
+script:
+  - npm run build
+  - npm run test
