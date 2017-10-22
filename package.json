@@ -1,7 +1,7 @@
 {
   "name": "postgres-driver",
   "version": "1.0.0",
-  "description": "postgres-class using proper types for easy crud-commands. Add own methods",
+  "description": "pg-promise sugar using proper types for easy (async) crud-commands. Add custom methods.",
   "main": "index.js",
   "scripts": {
     "build": "tsc",
