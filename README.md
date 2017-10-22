@@ -69,9 +69,36 @@ accounts.createNewAccount("user")
 ## Documentation
 | method | description |
 | --- | --- |
-| `async` **`readResource`**`<X, Y>(relation: string, where: Y, select?: (keyof X)[] | keyof X | "*")` | read a single tuple from the relation - returning null if no row was found |
-| `async` **`readResourceList`**`<X, Y>(relation: string, where: Y, select?: (keyof X)[] | keyof X | "*", skip?: number, limit?: number, orderByAsc?: (keyof X)[] | keyof X | "", orderByDsc?: (keyof X)[] | keyof X | "")` | read multiple tuples from the relation |
-| `async` **`createResource`**`<X>(relation: string, tuple: X)`| insert a new tuple in the relation |
-| `async` **`updateResource`**`<X, Y>(relation: string, update: X, where: Y)` | update one (multiple) tuple(s) in the relation |
-| `async` **`deleteResource`**`<X>(relation: string, where: X)`| remove one (multiple) tuple(s) |
-| `async` **`connect()`** | obtain the pg-promise database interface with an established connection to execute custom queries |
+| `async `**`readResource`**`<X, Y>()` | read a single tuple from the relation - returning null if no row was found |
+| `async `**`readResourceList`**`<X, Y>(relation: string, where: Y, select?: (keyof X)[] | keyof X | "*", )` | read multiple tuples from the relation |
+| `async `**`createResource`**`<X>(relation: string, tuple: X)`| insert a new tuple in the relation |
+| `async `**`updateResource`**`<X, Y>(relation: string, update: X, where: Y)` | update one (multiple) tuple(s) in the relation |
+| `async `**`deleteResource`**`<X>(relation: string, where: X)`| remove one (multiple) tuple(s) |
+| `async `**`connect()`** | obtain the pg-promise database interface with an established connection to execute custom queries |
+
+### **readResource<X, Y>()**
+- **`relation`**: *`string`* specify the table name
+- **`where`**: *`Y`* select the tuple to read
+- **`select?`**: *`(keyof X)[] | keyof X | "*"`* specify the columns to return
+
+### **readResourceList<X, Y>()**
+- **`relation`**: *`string`* specify the table name
+- **`where`**: *`Y`* select the tuples to read
+- **`select?`**: *`(keyof X)[] | keyof X | "*"`* specify the columns to return
+- **`skip?`**: *`number`* specify a total of tuples that should be skipped before selection - NOTE: make use of the orderByAsc/orderByDsc arguments to give sense to the expression 'skip the first x tuples'
+- **`limit?`**: *`number`* specify a maximum count of tuples in the selection
+- **`orderByAsc?`**: *`(keyof X)[] | keyof X | ""`* specify columns that should be ordered in ascending order
+- **`orderByDsc?`**: *`(keyof X)[] | keyof X | ""`* specify columns that should be ordered in descending order
+
+### **createResource<X>()**
+- **`relation`**: *`string`* specify the table name
+- **`tuple`**: *`X`* data to insert into the table
+
+### **updateResource<X, Y>()**
+- **`relation`**: *`string`* specify the table name
+- **`update`**: *`X`* specify the columns to manipulate
+- **`where`**: *`Y`* select the tuples to update
+
+### **deleteResource<X>()**
+- **`relation`**: *`string`* specify the table name
+- **`where`**: *`Y`* select the tuples to delete
