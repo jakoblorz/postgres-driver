@@ -66,8 +66,8 @@ export class Database<T extends {}, R extends string> {
     public async readResourceList<X extends T, Y extends T>(
         relation: R, where: Y, select: Array<keyof X> | keyof X | "*" = "*",
         skip: number = 0, limit: number = 10,
-        orderByAsc: Array<keyof X> | keyof X | string = "",
-        orderByDsc: Array<keyof X> | keyof X | string = "") {
+        orderByAsc: Array<keyof X> | keyof X | "" = "",
+        orderByDsc: Array<keyof X> | keyof X | "" = "") {
             
             // reduce the where clause into accessible structure
             const { clause, values } = await this.where<Y>(where);

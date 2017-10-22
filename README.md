@@ -65,3 +65,13 @@ accounts.createNewAccount("user")
         "" : JSON.stringify(account))) // { id: 0, name: "user", age: 18 }
     .catch(console.error);
 ```
+
+## Documentation
+| method | description |
+| --- | --- |
+| `async` **`readResource`**`<X, Y>(relation: string, where: Y, select?: (keyof X)[] | keyof X | "*")` | read a single tuple from the relation - returning null if no row was found |
+| `async` **`readResourceList`**`<X, Y>(relation: string, where: Y, select?: (keyof X)[] | keyof X | "*", skip?: number, limit?: number, orderByAsc?: (keyof X)[] | keyof X | "", orderByDsc?: (keyof X)[] | keyof X | "")` | read multiple tuples from the relation |
+| `async` **`createResource`**`<X>(relation: string, tuple: X)`| insert a new tuple in the relation |
+| `async` **`updateResource`**`<X, Y>(relation: string, update: X, where: Y)` | update one (multiple) tuple(s) in the relation |
+| `async` **`deleteResource`**`<X>(relation: string, where: X)`| remove one (multiple) tuple(s) |
+| `async` **`connect()`** | obtain the pg-promise database interface with an established connection to execute custom queries |
