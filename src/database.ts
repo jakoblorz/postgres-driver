@@ -1,5 +1,8 @@
 import * as pgpromise from "pg-promise";
 
+export const SKIP_DEFAULT = 0;
+export const LIMIT_DEFAULT = 10;
+
 let postgres: pgpromise.IDatabase<any> | undefined;
 
 interface IClauseValueTuple {
@@ -14,48 +17,41 @@ interface ITupleUsingPointers extends IClauseValueTuple {
 /**
  * Database is a class to hold all the necessary methods
  */
-export class Database<T extends {}, R extends string> {
+export class Database<TDefintion extends {}, TModel extends TDefintion> {
 
     /**
      * create a new database instance
+     * @param name table name
      * @param url connection string to the database
      * @param options init options for the pg-promise engine
      */
-    constructor(private url: string, private options?: pgpromise.IOptions<any>) { }
+    constructor(private name: string, private url: string, private options?: pgpromise.IOptions<any>) { }
 
     /**
-     * readResource
-     * @param relation specify on which relation the operation should happen
+     * read a single tuple from the database
      * @param where specify the constraints a tuple needs to fullfill to be selected
      * @param select specify the columns that should be returned - should be ALL and the
      * SAME as the keys defined in the X type
      */
-    public async readResource<X extends T, Y extends T>(
-        relation: R, where: Y, select: Array<keyof X> | keyof X | "*" = "*") {
+    public async readResource<X extends TDefintion>(where: X) {
             
-            // reduce the where clause into accessible structure
-            const { clause, values } = await this.where<Y>(where);
+        // reduce the where clause into accessible structure
+        const { clause, values } = await this.where<X>(where);
 
-            // build string of selected columns
-            const columns = typeof select === "string" ? select : select.toString();
+        // get the database interface
+        const connection = await this.connect();
 
-            // get the database interface
-            const connection = await this.connect();
+        // execute the query
+        return await connection.oneOrNone(
 
-            // execute the query
-            return await connection.oneOrNone(
-
-                // SELECT a, b FROM relation WHERE a = $1;
-                "SELECT " + columns + " FROM " + relation + " WHERE " + clause + " LIMIT 1"
-            , values) as X || null;
-        }
+            // SELECT a, b FROM relation WHERE a = $1;
+            "SELECT * FROM " + this.name + " WHERE " + clause + " LIMIT 1"
+        , values) as TModel | null || null;
+    }
 
     /**
-     * readResourceList
-     * @param relation specify on which relation the operation should happen
+     * read multiple tuples from the database
      * @param where specify the constraints a tuple needs to fullfill to be selected
-     * @param select specify the columns that should be retured - should be ALL and the
-     * SAME as the keys defined in the X type
      * @param skip specify the tuples that should be skipped before selecting - NOTE: make
      * use of the orderByAsc/orderByDsc arguments to give sense to the expression 'skip the
      * first x tuples'
@@ -63,17 +59,13 @@ export class Database<T extends {}, R extends string> {
      * @param orderByAsc specify columns which should be ordered in ascending order
      * @param orderByDsc specify columns which should be ordered in descending order
      */
-    public async readResourceList<X extends T, Y extends T>(
-        relation: R, where: Y, select: Array<keyof X> | keyof X | "*" = "*",
-        skip: number = 0, limit: number = 10,
-        orderByAsc: Array<keyof X> | keyof X | "" = "",
-        orderByDsc: Array<keyof X> | keyof X | "" = "") {
+    public async readResourceList<X extends TDefintion>(
+        where: X, skip: number = SKIP_DEFAULT, limit: number = LIMIT_DEFAULT,
+        orderByAsc: Array<keyof TModel> | keyof TModel | "" = "",
+        orderByDsc: Array<keyof TModel> | keyof TModel | "" = "") {
             
             // reduce the where clause into accessible structure
-            const { clause, values } = await this.where<Y>(where);
-
-            // build string of selected columns
-            const columns = typeof select === "string" ? select : select.toString();
+            const { clause, values } = await this.where<X>(where);
 
             //  build ORDER BY data for ascending orders
             const ascending = typeof orderByAsc === "string" ? orderByAsc + " ASC " : (orderByAsc as string[])
@@ -92,7 +84,7 @@ export class Database<T extends {}, R extends string> {
             // build the query
             const query = 
                 // SELECT a,b,c FROM relation WHERE a = $1
-                "SELECT " + columns + " FROM " + relation + " WHERE " + clause +
+                "SELECT * FROM " + this.name + " WHERE " + clause +
 
                 // ORDER BY a ASC, b DSC
                 (useOrderBy ? " ORDER BY " : "") +
@@ -105,81 +97,75 @@ export class Database<T extends {}, R extends string> {
                 (skip > 0 ? " OFFSET " + skip + " " : "") + (limit > 0 ? " LIMIT " + limit + " " : "");
 
             // execute the query
-            return await connection.many(query, values) as X[] || [];
+            return await connection.many(query, values) as TModel[] || [];
         }
 
     /**
-     * createResource
-     * @param relation specify on which relation the operation should happen
+     * insert a new tuple into the database
      * @param tuple specify the data to insert
      */
-    public async createResource<X extends T>(
-        relation: R, tuple: X) {
+    public async createResource<X extends TDefintion>(tuple: X) {
 
-            // reduce the tuple clause into accessible structure
-            // tslint:disable-next-line:prefer-const
-            let { clause, pointers, values } = Object.keys(tuple)
-                .reduce<ITupleUsingPointers>((acc, key, index) => {
-                        acc.values.push((tuple as any)[key]);
-                        acc.clause += key + ", ";
-                        acc.pointers += "$" + (index + 1) + ", ";
-                        return acc;
-                },  { clause: "", pointers: "", values: []});
+        // reduce the tuple clause into accessible structure
+        // tslint:disable-next-line:prefer-const
+        let { clause, pointers, values } = Object.keys(tuple)
+            .reduce<ITupleUsingPointers>((acc, key, index) => {
+                    acc.values.push((tuple as any)[key]);
+                    acc.clause += key + ", ";
+                    acc.pointers += "$" + (index + 1) + ", ";
+                    return acc;
+            },  { clause: "", pointers: "", values: []});
 
-            // remove the last commas
-            clause = clause.slice(0, -2);
-            pointers = pointers.slice(0, -2);
+        // remove the last commas
+        clause = clause.slice(0, -2);
+        pointers = pointers.slice(0, -2);
 
-            // get the database interface
-            const connection = await this.connect();
+        // get the database interface
+        const connection = await this.connect();
 
-            // execute the query
-            return await connection.none(
+        // execute the query
+        return await connection.none(
 
-                // INSERT INTO relation (a, b) VALUES ($1, $2);
-                "INSERT INTO " + relation + " (" + clause + ") VALUES (" + pointers + ")"
-            , values) as null || null;
-        }
+            // INSERT INTO relation (a, b) VALUES ($1, $2);
+            "INSERT INTO " + this.name + " (" + clause + ") VALUES (" + pointers + ")"
+        , values) as null || null;
+    }
 
     /**
-     * updateResource
-     * @param relation specify on which relation the operation should happen
+     * update one/multiple tuple/tuples in the database
      * @param update specify the data to manipulate
      * @param where specify the constraints a tuple needs to fullfill to be updated
      */
-    public async updateResource<X extends T, Y extends T>(
-        relation: R, update: X, where: Y) {
+    public async updateResource<X extends TDefintion, Y extends TDefintion>(update: X, where: Y) {
             
-            // reduce the update clause into accessible structure
-            const set = await this.set<X>(update);
+        // reduce the update clause into accessible structure
+        const set = await this.set<X>(update);
 
-            // decoy ($x) literals need index shifting
-            const updateIndexOffset = set.values.length;
+        // decoy ($x) literals need index shifting
+        const updateIndexOffset = set.values.length;
 
-            // reduce the where clause into accessible structure
-            const { clause, values } = await this.where<Y>(where, updateIndexOffset);
+        // reduce the where clause into accessible structure
+        const { clause, values } = await this.where<Y>(where, updateIndexOffset);
 
-            // concat the values array into the update values array
-            Array.prototype.push.apply(set.values, values);
+        // concat the values array into the update values array
+        Array.prototype.push.apply(set.values, values);
 
-            // get the database interface
-            const connection = await this.connect();
+        // get the database interface
+        const connection = await this.connect();
 
-            // execute the query
-            return await connection.none(
+        // execute the query
+        return await connection.none(
 
-                // UPDATE relation SET a = $1 WHERE b = $2;
-                "UPDATE " + relation + " SET " + set.clause + " WHERE " + clause
-            , set.values) as null || null;
-        }
+            // UPDATE relation SET a = $1 WHERE b = $2;
+            "UPDATE " + this.name + " SET " + set.clause + " WHERE " + clause
+        , set.values) as null || null;
+    }
 
     /**
-     * deleteResource
-     * @param relation specify on which relation the operation should happen
+     * remove one/multiple tuple/tuples from the database
      * @param where specify the constraint a tuple needs to fullfill to be deleted
      */
-    public async deleteResource<X extends T>(
-        relation: R, where: X) {
+    public async deleteResource<X extends TDefintion>(where: X) {
             
             // reduce the where clause into accessible structure
             const { clause, values } = await this.where<X>(where);
@@ -191,7 +177,7 @@ export class Database<T extends {}, R extends string> {
             return await connection.none(
 
                 // DELETE FROM relation WHERE a = $1;
-                "DELETE FROM " + relation + " WHERE " + clause
+                "DELETE FROM " + this.name + " WHERE " + clause
             , values) as null || null;
         }
 

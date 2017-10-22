@@ -1,6 +1,8 @@
 # postgres-driver
 pg-promise sugar using proper types for easy (async) crud-commands. Add custom methods.
 
+[![Build Status](https://travis-ci.org/jakoblorz/postgres-driver.svg?branch=remove-custom-select)](https://travis-ci.org/jakoblorz/postgres-driver)
+
 ## Installation
 this module is not listed on npm though it can be installed using it:
 ```shell
