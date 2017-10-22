@@ -3,6 +3,9 @@ import * as mocha from "mocha";
 
 import { Database } from "./database";
 
+const postgresUrl = process.env.POSTGRES_URL ||
+    "postgres://default:default@localhost:5432/postgres_driver";
+
 interface ITestUserTableDefinition {
     id?: number;
     name?: string;
@@ -16,7 +19,7 @@ interface ITestUserTable extends ITestUserTableDefinition {
 }
 
 const database = new Database<ITestUserTableDefinition, ITestUserTable>(
-    "users", "postgres://default:default@localhost:5432/postgres_driver");
+    "users", postgresUrl);
 
 describe("testing database.ts", () => {
 

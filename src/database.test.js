@@ -38,7 +38,9 @@ var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var assert = require("assert");
 var database_1 = require("./database");
-var database = new database_1.Database("users", "postgres://default:default@localhost:5432/postgres_driver");
+var postgresUrl = process.env.POSTGRES_URL ||
+    "postgres://default:default@localhost:5432/postgres_driver";
+var database = new database_1.Database("users", postgresUrl);
 describe("testing database.ts", function () {
     it("should create a tuple without any errors", function () { return __awaiter(_this, void 0, void 0, function () {
         return __generator(this, function (_a) {
